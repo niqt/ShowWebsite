@@ -6,6 +6,23 @@
 //
 
 import UIKit
+import AdSupport
+import AppTrackingTransparency
+
+struct RequestManager {
+    static func getIDFA() -> String {
+        return ASIdentifierManager.shared().advertisingIdentifier.uuidString
+    }
+    
+    static func checkTrackingStatus(completionHandler: @escaping (ATTrackingManager.AuthorizationStatus) -> Void) {
+        ATTrackingManager.requestTrackingAuthorization { status in
+            DispatchQueue.main.async {
+                completionHandler(status)
+                
+            }
+        }
+    }
+}
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -29,6 +46,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func sceneDidBecomeActive(_ scene: UIScene) {
         // Called when the scene has moved from an inactive state to an active state.
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
+        attRequest()
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
@@ -48,5 +66,23 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
 
+    func attRequest() {
+        RequestManager.checkTrackingStatus { status in
+            switch status {
+            case .authorized:
+                print("Authorized")
+            case .denied:
+                print("Denied")
+            case .notDetermined:
+                print("NotDetermined")
+                self.attRequest()
+            case .restricted:
+                print("Restricted")
+            @unknown default:
+                break
+            }
+        }
+    }
+    
 }
 
